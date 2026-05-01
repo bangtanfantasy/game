@@ -360,7 +360,7 @@
         <h1>💜 fantasy bangtan 🎵</h1>
         <div id="preface">
             <h3>✨ Preface</h3>
-            <p>Hi ARMYS! This is a prediction game made by ARMYs for ARMYs, where we predict the surprise songs BTS will be seeing at each stop of their Arirang Tour! Here are the rules:</p>
+            <p>Hi ARMYS! This is a prediction game made by ARMYs for ARMYs, where we predict the surprise songs BTS will be singing at each stop of their Arirang Tour! Here are the rules:</p>
             <ul>
                 <li>🕐 Put in your predictions for the surprise songs at least 2 hours before the concert officially starts.</li>
                 <li>📊 Each correct answer awards you 15 points, and there are 5 points awarded for participation if you submitted your answers but did not get any right.</li>
@@ -462,7 +462,7 @@
         <h1>💜 fantasy bangtan 🎵</h1>
         <h2 id="predictionHeading">🎤 Your Prediction</h2>
         <div id="predictionForm">
-            <label>🎵 Surprise Song 1:</label>
+<label>🎵 Surprise Song 1:</label>
             <input id="song1" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;"><br>
             <label>🎵 Surprise Song 2:</label>
             <input id="song2" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;"><br>
@@ -1089,8 +1089,43 @@ async function submitPrediction() {
                 backToMain();
                 return;
             }
-            const song1 = document.getElementById('song1').value;
+const song1 = document.getElementById('song1').value;
             const song2 = document.getElementById('song2').value;
+            
+            // List of allowed songs (must match exactly with the datalist options)
+            const allowedSongs = [
+                "134340", "2! 3!", "21st Century Girl", "24/7 = Heaven", "2nd Grade",
+                "A Supplementary Story: You Never Walk Alone", "Airplane Pt. 2", "Am I Wrong", "Anpanman",
+                "Answer: Love Myself", "Attack On Bangtan", "Autumn Leaves", "Best Of Me", "Black Swan",
+                "Blood, Sweat and Tears", "Blue & Grey", "Born Singer", "Boy in Luv", "Boy With Luv",
+                "Boyz With Fun", "Butterfly", "Can you turn off your cellphone?", "Coffee", "Converse High",
+                "Crystal Snow", "Cypher Pt. 1", "Cypher Pt. 2", "Cypher Pt. 3", "Cypher Pt. 4",
+                "Danger", "Ddaeng", "Dimple", "Dis-ease", "DNA", "Don't Leave Me", "Dope",
+                "Embarassed", "Film Out", "Fly To My Room", "For You", "For Youth", "Go Go",
+                "Heartbeat", "Hip Hop Phile", "Hold Me Tight", "Home", "House of Cards", "I Need U",
+                "I'm Fine", "If I Ruled The World", "Jump", "Just One Day", "Let Go", "Let Me Know",
+                "Life Goes On", "Lights", "Like", "Like Pt. 2", "Look Here", "Lost",
+                "Love is not over", "Love Maze", "Louder Than Bombs", "Ma City", "Magic Shop",
+                "Make It Right", "Mikrokosmos", "Miss Right", "Moving On", "My Universe", "N.O",
+                "No More Dream", "Not Today", "ON", "One More Night", "Outro: Her", "Outro: Tear",
+                "Outro: Wings", "Paldogangsan", "Paradise", "Path", "Permission To Dance",
+                "Pied Piper", "Rain", "Run", "Save Me", "Sea", "Silver Spoon", "So What",
+                "Spine Breaker", "Spring Day", "Stay", "Stay Gold", "Take Two", "Telepathy",
+                "The Planet", "The Truth Untold", "The stars", "Tomorrow", "UGH!", "Wake Up",
+                "WAB: Pt 1", "War of Hormone", "We are Bulletproof:The Eternal",
+                "We Are Bulletproof Pt.2", "We On", "Whalien 52", "Where You From",
+                "Wishing on a star", "Yet To Come", "Young Forever", "Your Eyes Tell", "Zero O' Clock"
+            ];
+            
+            // Validate: Must select from allowed options (not custom manual input)
+            if (!song1 || !song2) {
+                alert('Try again, select from given options');
+                return;
+            }
+            if (!allowedSongs.includes(song1) || !allowedSongs.includes(song2)) {
+                alert('Try again, select from given options');
+                return;
+            }
             if (!predictions[city]) predictions[city] = {};
             predictions[city][currentUser] = {song1, song2};
             localStorage.setItem('predictions', JSON.stringify(predictions));
