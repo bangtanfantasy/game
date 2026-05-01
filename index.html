@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTS Guesser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0e6ff 0%, #e6d9f9 50%, #f0e6ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .hidden { display: none; }
+        
+        h1, h2, h3 {
+            color: #6b4fa0;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            font-size: 1.8em;
+            border-bottom: 3px solid #d4b5f3;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.3em;
+        }
+        
+        /* Auth Sections */
+        #auth, #register {
+            max-width: 450px;
+            margin: 40px auto;
+            padding: 40px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(107, 79, 160, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Input Styling */
+        input[type="text"], input[type="password"], select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border: 2px solid #d4b5f3;
+            border-radius: 10px;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            color: #333;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus, select:focus {
+            outline: none;
+            border-color: #b896d9;
+            box-shadow: 0 0 10px rgba(184, 150, 217, 0.4);
+            background-color: #ffffff;
+        }
+        
+        /* Button Styling */
+        button {
+            padding: 12px 24px;
+            margin: 8px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(107, 79, 160, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(107, 79, 160, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(-1px);
+        }
+        
+        #auth button, #register button {
+            width: 100%;
+            background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%);
+            color: white;
+            margin: 10px 0;
+        }
+        
+        #auth button:hover, #register button:hover {
+            background: linear-gradient(135deg, #a080c4 0%, #8b5aaa 100%);
+        }
+        
+        /* City Buttons */
+        #cityButtons, #adminCityButtons, #dayButtons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        #cityButtons button, #adminCityButtons button, #dayButtons button {
+            background: linear-gradient(135deg, #d4b5f3 0%, #c9a3e8 100%);
+            color: #6b4fa0;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(107, 79, 160, 0.2);
+        }
+        
+        #cityButtons button:hover, #adminCityButtons button:hover, #dayButtons button:hover {
+            background: linear-gradient(135deg, #c9a3e8 0%, #bd91dd 100%);
+            color: #5a3d8a;
+        }
+        
+        #submitPredictionButton {
+            background: linear-gradient(135deg, #9b6fbf 0%, #7a5299 100%);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        
+        #submitPredictionButton:hover {
+            background: linear-gradient(135deg, #8b5aaa 0%, #6a4289 100%);
+        }
+        
+        /* Leaderboard */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(107, 79, 160, 0.15);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e8dff5;
+            color: #333;
+        }
+        
+        tr:hover {
+            background-color: #f5f0ff;
+            transition: background-color 0.3s ease;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Main Content */
+        #main {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        #preface {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 100%) !important;
+            border: 2px solid #d4b5f3 !important;
+            border-radius: 15px !important;
+            padding: 30px !important;
+            margin-bottom: 30px !important;
+            box-shadow: 0 8px 25px rgba(107, 79, 160, 0.15);
+        }
+        
+        #preface h3 {
+            font-size: 1.5em;
+        }
+        
+        #preface ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        #preface li {
+            margin: 8px 0;
+            color: #555;
+        }
+        
+        /* Prediction Section */
+        #prediction, #daySelection, #setCorrect {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 100%);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(107, 79, 160, 0.2);
+        }
+        
+        #predictionForm {
+            margin: 20px 0;
+        }
+        
+        #predictionForm label {
+            display: block;
+            margin: 15px 0 8px 0;
+            color: #6b4fa0;
+            font-weight: 600;
+        }
+        
+        #predictionForm select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #d4b5f3;
+            border-radius: 10px;
+            background-color: white;
+        }
+        
+        #predictionResult {
+            background: linear-gradient(135deg, #f0e6ff 0%, #e6d9f9 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #b896d9;
+            margin: 20px 0;
+        }
+        
+        #predictionResult p {
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        /* Admin Panel */
+        #adminPanel {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        #daySelectionCity {
+            color: #6b4fa0;
+            font-weight: bold;
+        }
+        
+        /* User Stats */
+        #userStats {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 100%);
+            border: 2px solid #d4b5f3;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(107, 79, 160, 0.15);
+        }
+        
+        #userStats p {
+            margin: 10px 0;
+            font-size: 15px;
+            color: #333;
+        }
+        
+        #userStats p strong {
+            color: #6b4fa0;
+        }
+        
+        #userStats ul {
+            margin: 15px 0 0 20px;
+            padding-left: 15px;
+        }
+        
+        #userStats li {
+            margin: 10px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        /* Logout Button */
+        #logoutButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #e63a6d 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(230, 58, 109, 0.3);
+            z-index: 1000;
+        }
+        
+        #logoutButton:hover {
+            background: linear-gradient(135deg, #e85a8c 0%, #d6285c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 58, 109, 0.4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            #cityButtons, #adminCityButtons, #dayButtons {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 8px;
+            }
+            
+            #auth, #register {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            h2 {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="logoutButton" class="hidden" onclick="logout()">🚪 Logout</button>
+    
+    <div id="auth">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2>Login</h2>
+        <input type="text" id="loginUsername" placeholder="👤 Username">
+        <input type="password" id="loginPassword" placeholder="🔒 Password">
+        <button onclick="login()">🔓 Login</button>
+        <button onclick="showRegister()">✏️ Register</button>
+    </div>
+    <div id="register" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2>Register</h2>
+        <input type="text" id="regUsername" placeholder="👤 Username">
+        <input type="password" id="regPassword" placeholder="🔒 Password">
+        <button onclick="register()">✅ Register</button>
+        <button onclick="showLogin()">⬅️ Back to Login</button>
+    </div>
+    <div id="main" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <div id="preface">
+            <h3>✨ Preface</h3>
+            <p>Hi ARMYS! This is a prediction game made by ARMYs for ARMYs, where we predict the surprise songs BTS will be seeing at each stop of their Arirang Tour! Here are the rules:</p>
+            <ul>
+                <li>🕐 Put in your predictions for the surprise songs at least 2 hours before the concert officially starts.</li>
+                <li>📊 Each correct answer awards you 15 points, and there are 5 points awarded for participation if you submitted your answers but did not get any right.</li>
+                <li>🎉 This is purely for entertainment and fun, and there are no prizes available other than bragging rights.</li>
+                <li>😊 Have fun!</li>
+            </ul>
+            <p><strong>P.S.</strong> This website is made by a beginner at coding so apologies in advance for any issues </p>
+        </div>
+        <h2>🏆 Leaderboard</h2>
+        <table id="leaderboard"></table>
+        <h2>🌍 Cities</h2>
+        <div id="cityButtons">
+            <button onclick="showDaySelection('Goyang')">Goyang</button>
+            <button onclick="showDaySelection('Tokyo')">Tokyo</button>
+            <button onclick="showDaySelection('Tampa')">Tampa</button>
+            <button onclick="showDaySelection('El Paso')">El Paso</button>
+            <button onclick="showDaySelection('Mexico City')">Mexico City</button>
+            <button onclick="showDaySelection('Stanford')">Stanford</button>
+            <button onclick="showDaySelection('Las Vegas')">Las Vegas</button>
+            <button onclick="showDaySelection('Busan')">Busan</button>
+            <button onclick="showDaySelection('Madrid')">Madrid</button>
+            <button onclick="showDaySelection('Brussels')">Brussels</button>
+            <button onclick="showDaySelection('London')">London</button>
+            <button onclick="showDaySelection('Munich')">Munich</button>
+            <button onclick="showDaySelection('Paris')">Paris</button>
+            <button onclick="showDaySelection('East Rutherford')">East Rutherford</button>
+            <button onclick="showDaySelection('Foxborough')">Foxborough</button>
+            <button onclick="showDaySelection('Baltimore')">Baltimore</button>
+            <button onclick="showDaySelection('Arlington')">Arlington</button>
+            <button onclick="showDaySelection('Toronto')">Toronto</button>
+            <button onclick="showDaySelection('Chicago')">Chicago</button>
+            <button onclick="showDaySelection('Los Angeles')">Los Angeles</button>
+            <button onclick="showDaySelection('Bogota')">Bogota</button>
+            <button onclick="showDaySelection('Lima')">Lima</button>
+            <button onclick="showDaySelection('Santiago')">Santiago</button>
+            <button onclick="showDaySelection('Buenos Aires')">Buenos Aires</button>
+            <button onclick="showDaySelection('São Paulo')">São Paulo</button>
+            <button onclick="showDaySelection('Kaohsiung')">Kaohsiung</button>
+            <button onclick="showDaySelection('Bangkok')">Bangkok</button>
+            <button onclick="showDaySelection('Kuala Lumpur')">Kuala Lumpur</button>
+            <button onclick="showDaySelection('Singapore')">Singapore</button>
+            <button onclick="showDaySelection('Jakarta')">Jakarta</button>
+            <button onclick="showDaySelection('Melbourne')">Melbourne</button>
+            <button onclick="showDaySelection('Sydney')">Sydney</button>
+            <button onclick="showDaySelection('Hong Kong')">Hong Kong</button>
+            <button onclick="showDaySelection('Manila')">Manila</button>
+        </div>
+        <h2>📊 My Statistics</h2>
+        <div id="userStats"></div>
+    </div>
+    <div id="adminPanel" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2>🔐 Admin Page</h2>
+        <p style="font-size: 16px; color: #6b4fa0; font-weight: 600; text-align: center;">You are logged in as admin. Click on a city to manage it.</p>
+        <div id="adminCityButtons">
+            <button onclick="showDaySelection('Goyang')">Goyang</button>
+            <button onclick="showDaySelection('Tokyo')">Tokyo</button>
+            <button onclick="showDaySelection('Tampa')">Tampa</button>
+            <button onclick="showDaySelection('El Paso')">El Paso</button>
+            <button onclick="showDaySelection('Mexico City')">Mexico City</button>
+            <button onclick="showDaySelection('Stanford')">Stanford</button>
+            <button onclick="showDaySelection('Las Vegas')">Las Vegas</button>
+            <button onclick="showDaySelection('Busan')">Busan</button>
+            <button onclick="showDaySelection('Madrid')">Madrid</button>
+            <button onclick="showDaySelection('Brussels')">Brussels</button>
+            <button onclick="showDaySelection('London')">London</button>
+            <button onclick="showDaySelection('Munich')">Munich</button>
+            <button onclick="showDaySelection('Paris')">Paris</button>
+            <button onclick="showDaySelection('East Rutherford')">East Rutherford</button>
+            <button onclick="showDaySelection('Foxborough')">Foxborough</button>
+            <button onclick="showDaySelection('Baltimore')">Baltimore</button>
+            <button onclick="showDaySelection('Arlington')">Arlington</button>
+            <button onclick="showDaySelection('Toronto')">Toronto</button>
+            <button onclick="showDaySelection('Chicago')">Chicago</button>
+            <button onclick="showDaySelection('Los Angeles')">Los Angeles</button>
+            <button onclick="showDaySelection('Bogota')">Bogota</button>
+            <button onclick="showDaySelection('Lima')">Lima</button>
+            <button onclick="showDaySelection('Santiago')">Santiago</button>
+            <button onclick="showDaySelection('Buenos Aires')">Buenos Aires</button>
+            <button onclick="showDaySelection('São Paulo')">São Paulo</button>
+            <button onclick="showDaySelection('Kaohsiung')">Kaohsiung</button>
+            <button onclick="showDaySelection('Bangkok')">Bangkok</button>
+            <button onclick="showDaySelection('Kuala Lumpur')">Kuala Lumpur</button>
+            <button onclick="showDaySelection('Singapore')">Singapore</button>
+            <button onclick="showDaySelection('Jakarta')">Jakarta</button>
+            <button onclick="showDaySelection('Melbourne')">Melbourne</button>
+            <button onclick="showDaySelection('Sydney')">Sydney</button>
+            <button onclick="showDaySelection('Hong Kong')">Hong Kong</button>
+            <button onclick="showDaySelection('Manila')">Manila</button>
+        </div>
+    </div>
+    <div id="answersPage" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2>📋 Your Full Answers</h2>
+        <button onclick="showMain()">⬅️ Back</button>
+        <pre id="answersContent"></pre>
+    </div>
+    <div id="prediction" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2 id="predictionHeading">🎤 Your Prediction</h2>
+        <div id="predictionForm">
+            <label>🎵 Surprise Song 1:</label>
+            <input id="song1" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;"><br>
+            <label>🎵 Surprise Song 2:</label>
+            <input id="song2" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;"><br>
+            <button id="submitPredictionButton" onclick="submitPrediction()">✨ Submit</button>
+        </div>
+        <div id="predictionResult" class="hidden"></div>
+        <button onclick="backToMain()" style="background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%); color: white; width: 100%; margin-top: 10px;">⬅️ Back</button>
+    </div>
+    <div id="setCorrect" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2>✅ Set Correct Answers</h2>
+        <div id="correctForms"></div>
+        <button onclick="backToMain()" style="background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%); color: white; width: 100%; margin-top: 10px;">⬅️ Back</button>
+    </div>
+    <div id="daySelection" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2>📅 Select a Day</h2>
+        <p style="text-align: center; color: #6b4fa0; font-size: 18px; margin: 10px 0;"><span id="daySelectionCity"></span></p>
+        <div id="dayButtons"></div>
+        <button onclick="backToMain()" style="background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%); color: white; width: 100%; margin-top: 10px;">⬅️ Back</button>
+    </div>
+    <datalist id="songList">
+        <option value="134340">
+        <option value="2! 3!">
+        <option value="21st Century Girl">
+        <option value="24/7 = Heaven">
+        <option value="2nd Grade">
+        <option value="A Supplementary Story: You Never Walk Alone">
+        <option value="Airplane Pt. 2">
+        <option value="Am I Wrong">
+        <option value="Anpanman">
+        <option value="Answer: Love Myself">
+        <option value="Attack On Bangtan">
+        <option value="Autumn Leaves">
+        <option value="Best Of Me">
+        <option value="Black Swan">
+        <option value="Blood, Sweat and Tears">
+        <option value="Blue & Grey">
+        <option value="Born Singer">
+        <option value="Boy in Luv">
+        <option value="Boy With Luv">
+        <option value="Boyz With Fun">
+        <option value="Butterfly">
+        <option value="Can you turn off your cellphone?">
+        <option value="Coffee">
+        <option value="Converse High">
+        <option value="Crystal Snow">
+        <option value="Cypher Pt. 1">
+        <option value="Cypher Pt. 2">
+        <option value="Cypher Pt. 3">
+        <option value="Cypher Pt. 4">
+        <option value="Danger">
+        <option value="Ddaeng">
+        <option value="Dimple">
+        <option value="Dis-ease">
+        <option value="DNA">
+        <option value="Don’t Leave Me">
+        <option value="Dope">
+        <option value="Embarassed">
+        <option value="Film Out">
+        <option value="Fly To My Room">
+        <option value="For You">
+        <option value="For Youth">
+        <option value="Go Go">
+        <option value="Heartbeat">
+        <option value="Hip Hop Phile">
+        <option value="Hold Me Tight">
+        <option value="Home">
+        <option value="House of Cards">
+        <option value="I Need U">
+        <option value="I’m Fine">
+        <option value="If I Ruled The World">
+        <option value="Jump">
+        <option value="Just One Day">
+        <option value="Let Go">
+        <option value="Let Me Know">
+        <option value="Life Goes On">
+        <option value="Lights">
+        <option value="Like">
+        <option value="Like Pt. 2">
+        <option value="Look Here">
+        <option value="Lost">
+        <option value="Love is not over">
+        <option value="Love Maze">
+        <option value="Louder Than Bombs">
+        <option value="Ma City">
+        <option value="Magic Shop">
+        <option value="Make It Right">
+        <option value="Mikrokosmos">
+        <option value="Miss Right">
+        <option value="Moving On">
+        <option value="My Universe">
+        <option value="N.O">
+        <option value="No More Dream">
+        <option value="Not Today">
+        <option value="ON">
+        <option value="One More Night">
+        <option value="Outro: Her">
+        <option value="Outro: Tear">
+        <option value="Outro: Wings">
+        <option value="Paldogangsan">
+        <option value="Paradise">
+        <option value="Path">
+        <option value="Permission To Dance">
+        <option value="Pied Piper">
+        <option value="Rain">
+        <option value="Run">
+        <option value="Save Me">
+        <option value="Sea">
+        <option value="Silver Spoon">
+        <option value="So What">
+        <option value="Spine Breaker">
+        <option value="Spring Day">
+        <option value="Stay">
+        <option value="Stay Gold">
+        <option value="Take Two">
+        <option value="Telepathy">
+        <option value="The Planet">
+        <option value="The Truth Untold">
+        <option value="The stars">
+        <option value="Tomorrow">
+        <option value="UGH!">
+        <option value="Wake Up">
+        <option value="WAB: Pt 1">
+        <option value="War of Hormone">
+        <option value="We are Bulletproof:The Eternal">
+        <option value="We Are Bulletproof Pt.2">
+        <option value="We On">
+        <option value="Whalien 52">
+        <option value="Where You From">
+        <option value="Wishing on a star">
+        <option value="Yet To Come">
+        <option value="Young Forever">
+        <option value="Your Eyes Tell">
+        <option value="Zero O’ Clock">
+    </datalist>
+    <script type="module">
+import { db, auth } from './firebase.js';
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const adminUsername = 'adminmeatman';
+        const cityDays = {
+            'Goyang': 3, 'Tokyo': 2, 'Tampa': 3, 'El Paso': 2, 'Mexico City': 3,
+            'Stanford': 3, 'Las Vegas': 4, 'Busan': 2, 'Madrid': 2, 'Brussels': 2,
+            'London': 2, 'Munich': 2, 'Paris': 2, 'East Rutherford': 2, 'Foxborough': 2,
+            'Baltimore': 2, 'Arlington': 2, 'Toronto': 2, 'Chicago': 2, 'Los Angeles': 4,
+            'Bogota': 2, 'Lima': 3, 'Santiago': 3, 'Buenos Aires': 3, 'São Paulo': 3,
+            'Kaohsiung': 3, 'Bangkok': 3, 'Kuala Lumpur': 2, 'Singapore': 4, 'Jakarta': 2,
+            'Melbourne': 2, 'Sydney': 2, 'Hong Kong': 3, 'Manila': 2
+        };
+        let currentUser = null;
+        let isAdminUser = false;
+        let currentCitySelected = null;
+        let users = [];
+        let predictions = JSON.parse(localStorage.getItem('predictions')) || {};
+        let correct = JSON.parse(localStorage.getItem('correct')) || {};
+        let leaderboardSorted = [];
+
+        async function fakeEmailForUsername(username) {
+            // Deterministic fake email per username.
+            // Firebase Authentication will handle password encryption.
+            const normalized = String(username).trim().toLowerCase();
+            const encoder = new TextEncoder();
+            const data = encoder.encode(normalized);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            const prefix = hashHex.slice(0, 24); // enough to avoid collisions
+            return `${prefix}@bts-guesser.app`;
+        }
+
+        async function getUserFromFirebase(username) {
+            // Profile lookup (NO passwords stored here).
+            try {
+                const userId = encodeURIComponent(username);
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                return userDoc.exists() ? userDoc.data() : null;
+            } catch (error) {
+                console.error('Firebase user lookup failed:', error);
+                return null;
+            }
+        }
+
+        async function saveUserToFirebase(username, email) {
+            // Create only a profile doc; password lives in Firebase Auth.
+            const userRecord = { username, email };
+            const userId = encodeURIComponent(username);
+            await setDoc(doc(db, 'users', userId), userRecord, { merge: true });
+            // Keep the local cache behavior so the leaderboard works as before
+            users.push(userRecord);
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+async function loadUsersFromFirebase() {
+            try {
+                const snapshot = await getDocs(collection(db, 'users'));
+                users = [];
+                snapshot.forEach(docSnap => users.push(docSnap.data()));
+                localStorage.setItem('users', JSON.stringify(users));
+            } catch (error) {
+                console.warn('Firebase load failed, falling back to local users:', error);
+                users = JSON.parse(localStorage.getItem('users')) || [];
+            }
+            // Load predictions from Firestore
+            try {
+                const predSnapshot = await getDocs(collection(db, 'predictions'));
+                predictions = {};
+                predSnapshot.forEach(docSnap => {
+                    predictions[docSnap.id] = docSnap.data();
+                });
+                localStorage.setItem('predictions', JSON.stringify(predictions));
+            } catch (error) {
+                console.warn('Firebase predictions load failed:', error);
+                predictions = JSON.parse(localStorage.getItem('predictions')) || {};
+            }
+            // Load correct answers from Firestore
+            try {
+                const corrSnapshot = await getDocs(collection(db, 'correct'));
+                correct = {};
+                corrSnapshot.forEach(docSnap => {
+                    correct[docSnap.id] = docSnap.data();
+                });
+                localStorage.setItem('correct', JSON.stringify(correct));
+            } catch (error) {
+                console.warn('Firebase correct answers load failed:', error);
+                correct = JSON.parse(localStorage.getItem('correct')) || {};
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadUsersFromFirebase);
+
+        function normalizeCityKey(city) {
+            const match = city.match(/^(.+?) D\d+$/);
+            return match ? match[1] : city;
+        }
+
+        function getCorrectAnswer(city) {
+            if (correct[city]) return correct[city];
+            const base = normalizeCityKey(city);
+            return correct[base] || {};
+        }
+
+        function getPredictionMatchInfo(pred, corr) {
+            const remaining = [corr.song1, corr.song2];
+            const matched = [false, false];
+            ['song1', 'song2'].forEach((key, index) => {
+                const guess = pred[key];
+                const matchIndex = remaining.indexOf(guess);
+                if (matchIndex !== -1) {
+                    matched[index] = true;
+                    remaining.splice(matchIndex, 1);
+                }
+            });
+            const matchCount = matched.filter(Boolean).length;
+            const points = matchCount === 2 ? 30 : matchCount === 1 ? 15 : 5;
+            return { matched, matchCount, points };
+        }
+
+        function showLogin() {
+            currentUser = null;
+            currentCitySelected = null;
+            document.getElementById('auth').classList.remove('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('prediction').classList.add('hidden');
+            document.getElementById('setCorrect').classList.add('hidden');
+            document.getElementById('daySelection').classList.add('hidden');
+            document.getElementById('answersPage').classList.add('hidden');
+            document.getElementById('logoutButton').classList.add('hidden');
+            isAdminUser = false;
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('logoutButton').classList.add('hidden');
+            showLogin();
+        }
+
+        function showRegister() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('register').classList.remove('hidden');
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const email = await fakeEmailForUsername(username);
+                await signInWithEmailAndPassword(auth, email, password);
+
+currentUser = username;
+                isAdminUser = username.toLowerCase() === adminUsername.toLowerCase();
+
+                if (isAdminUser) {
+                    showAdmin();
+                } else {
+                    showMain();
+                }
+            } catch (error) {
+                console.error('Login failed:', error);
+                alert('Invalid credentials');
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+
+            // Allow adminmeatman to register into Firebase Auth as well.
+
+            const email = await fakeEmailForUsername(username);
+
+            try {
+                // Create user in Firebase Authentication (password is encrypted by Firebase Auth)
+                await createUserWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error('Register failed:', error);
+                const code = error && error.code ? error.code : '';
+                const message = error && error.message ? error.message : 'Registration failed';
+
+                // Only show "Username taken" for the real "already exists" case
+                if (code === 'auth/email-already-in-use') {
+                    alert('Username taken');
+                } else {
+                    // Show actual auth error so we can debug
+                    alert(`Registration failed (${code}): ${message}`);
+                }
+                return;
+            }
+
+            // Save non-sensitive profile in Firestore for leaderboard/etc.
+            // IMPORTANT: Firestore failures should NOT be reported as "Username taken".
+            try {
+                await saveUserToFirebase(username, email);
+            } catch (error) {
+                console.warn('Auth succeeded but Firestore profile save failed:', error);
+            }
+
+            alert('Registered');
+            showLogin();
+        }
+
+        function showMain() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('main').classList.remove('hidden');
+            document.getElementById('prediction').classList.add('hidden');
+            document.getElementById('setCorrect').classList.add('hidden');
+            document.getElementById('daySelection').classList.add('hidden');
+            document.getElementById('answersPage').classList.add('hidden');
+            document.getElementById('logoutButton').classList.remove('hidden');
+            document.getElementById('cityButtons').classList.remove('hidden');
+            resetPredictionPanel();
+            updateLeaderboard();
+            updateUserStats();
+        }
+
+        function populateAnswers() {
+            const user = currentUser;
+            let answers = [];
+            for (let city in cityDays) {
+                for (let day = 1; day <= cityDays[city]; day++) {
+                    const cityDay = `${city} D${day}`;
+                    const pred = predictions[cityDay] && predictions[cityDay][user];
+                    const corr = getCorrectAnswer(cityDay);
+                    if (!pred) {
+                        if (corr.locked) {
+                            answers.push(`${cityDay} - No predictions (0 points)`);
+                        } else {
+                            answers.push(`${cityDay} - No prediction (pending)`);
+                        }
+                        continue;
+                    }
+                    if (!corr.locked) {
+                        answers.push(`${cityDay} - ${capitalize(pred.song1)}, ${capitalize(pred.song2)} (pending)`);
+                        continue;
+                    }
+                    const { matched, points } = getPredictionMatchInfo(pred, corr);
+                    const s1Emoji = matched[0] ? '✔️' : '❌';
+                    const s2Emoji = matched[1] ? '✔️' : '❌';
+                    answers.push(`${cityDay} - ${capitalize(pred.song1)} ${s1Emoji}, ${capitalize(pred.song2)} ${s2Emoji} (${points} points)`);
+                }
+            }
+            document.getElementById('answersContent').textContent = answers.join('\n');
+        }
+
+        function showAnswers() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('prediction').classList.add('hidden');
+            document.getElementById('setCorrect').classList.add('hidden');
+            document.getElementById('daySelection').classList.add('hidden');
+            document.getElementById('answersPage').classList.remove('hidden');
+            document.getElementById('logoutButton').classList.remove('hidden');
+            populateAnswers();
+        }
+
+        function showDaySelection(city) {
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('daySelection').classList.remove('hidden');
+            document.getElementById('answersPage').classList.add('hidden');
+            document.getElementById('daySelectionCity').textContent = city;
+            const dayButtons = document.getElementById('dayButtons');
+            dayButtons.innerHTML = '';
+            const numDays = cityDays[city] || 1;
+            for (let i = 1; i <= numDays; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = `${city} D${i}`;
+                btn.onclick = () => showPrediction(`${city} D${i}`);
+                dayButtons.appendChild(btn);
+            }
+        }
+
+        function resetPredictionPanel() {
+            document.getElementById('predictionForm').classList.remove('hidden');
+            document.getElementById('predictionResult').classList.add('hidden');
+            document.getElementById('submitPredictionButton').disabled = false;
+        }
+
+        function showAdmin() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            document.getElementById('prediction').classList.add('hidden');
+            document.getElementById('setCorrect').classList.add('hidden');
+            document.getElementById('daySelection').classList.add('hidden');
+            document.getElementById('answersPage').classList.add('hidden');
+            document.getElementById('logoutButton').classList.remove('hidden');
+            updateLeaderboard();
+        }
+
+        function calculateUserPoints(user) {
+            let totalPoints = 0;
+            for (const city of Object.keys(cityDays)) {
+                for (let day = 1; day <= cityDays[city]; day++) {
+                    const cityDay = `${city} D${day}`;
+                    const pred = predictions[cityDay] && predictions[cityDay][user];
+                    const corr = getCorrectAnswer(cityDay);
+                    if (!pred || !corr.locked) continue;
+                    const { points } = getPredictionMatchInfo(pred, corr);
+                    totalPoints += points;
+                }
+            }
+            return totalPoints;
+        }
+
+        function updateLeaderboard() {
+            const points = {};
+            const adminLower = adminUsername.toLowerCase();
+
+            const usernamesFromFirestore = users
+                .map(u => u && u.username)
+                .filter(Boolean);
+
+            // Fallback: derive usernames from predictions if Firestore didn't load
+            const usernamesFromPredictions = new Set();
+            Object.keys(predictions || {}).forEach(cityDay => {
+                const byUser = predictions[cityDay];
+                if (!byUser) return;
+                Object.keys(byUser).forEach(u => usernamesFromPredictions.add(u));
+            });
+
+            const usernames = (usernamesFromFirestore.length ? usernamesFromFirestore : Array.from(usernamesFromPredictions));
+
+            usernames.forEach(u => {
+                if (!u) return;
+                if (u.toLowerCase() === adminLower) return;
+                points[u] = calculateUserPoints(u);
+            });
+
+            // Ensure the current user shows up even if username lists are empty
+            if (currentUser && !currentUser.toLowerCase().includes(adminLower)) {
+                if (points[currentUser] === undefined) points[currentUser] = calculateUserPoints(currentUser);
+            }
+
+const sorted = Object.entries(points).sort((a, b) => b[1] - a[1]).slice(0, 25);
+            leaderboardSorted = sorted;
+
+            const table = document.getElementById('leaderboard');
+            table.innerHTML =
+                '<tr><th>Rank</th><th>Username</th><th>Points</th></tr>' +
+                sorted.map(([u, p], index) => `<tr><td>${index + 1}</td><td>${u}</td><td>${p}</td></tr>`).join('');
+        }
+
+        function showPrediction(city) {
+            resetPredictionPanel();
+            const current = getCorrectAnswer(city);
+            const disabled = current.disabled || false;
+            const locked = current.locked || false;
+            const heading = document.querySelector('#prediction h2');
+            currentCitySelected = city;
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('prediction').classList.remove('hidden');
+            document.getElementById('answersPage').classList.add('hidden');
+            const predictionForm = document.getElementById('predictionForm');
+            const predictionResult = document.getElementById('predictionResult');
+
+            if (isAdminUser) {
+                // Admin view
+                heading.innerHTML = `Manage ${city}`;
+                predictionForm.classList.add('hidden');
+                predictionResult.classList.remove('hidden');
+                let html = `<h3 style="color: #6b4fa0; margin-bottom: 15px;">📋 Current Status:</h3>`;
+                if (locked) {
+                    html += `<div style="background: linear-gradient(135deg, #d4f0ff 0%, #c5e9ff 100%); border-left: 4px solid #7a9fbf; padding: 15px; border-radius: 8px; margin: 15px 0;"><p style="font-weight: bold; color: #2c5282; margin: 5px 0;">✅ Correct Answers Locked:</p><p style="font-size: 16px; color: #2c5282; margin: 5px 0;"><strong>${capitalize(current.song1)}, ${capitalize(current.song2)}</strong></p></div>`;
+                    html += `<button onclick="changeCorrect('${city}')" style="background: linear-gradient(135deg, #ffc947 0%, #ffb700 100%); color: white; font-weight: 600; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin: 8px 0;">✏️ Change Correct Answers</button>`;
+                    html += `<button onclick="removeCorrect('${city}')" style="background: linear-gradient(135deg, #ff6b9d 0%, #e63a6d 100%); color: white; font-weight: 600; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin: 8px 0;">🗑️ Remove Correct Answers</button>`;
+                } else {
+                    html += `<div style="background: linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%); border-left: 4px solid #d4a574; padding: 15px; border-radius: 8px; margin: 15px 0;"><p style="color: #8b6914; margin: 5px 0;">⚠️ No correct answers set yet.</p></div>`;
+                    html += `<label style="display: block; margin: 15px 0; color: #6b4fa0; font-weight: 600;">
+                        <input type="checkbox" id="adminDisable" ${disabled ? 'checked' : ''} style="margin-right: 8px; cursor: pointer;"> 🚫 Disable this city
+                    </label>`;
+                    html += `<label style="display: block; margin: 15px 0 8px 0; color: #6b4fa0; font-weight: 600;">🎵 Song 1:</label>
+                    <input id="adminSong1" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;">
+                    <label style="display: block; margin: 15px 0 8px 0; color: #6b4fa0; font-weight: 600;">🎵 Song 2:</label>
+                    <input id="adminSong2" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;">
+                    <button onclick="setCorrect('${city}')" style="background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%); color: white; font-weight: 600; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin: 8px 0;">✅ Set Correct Answers</button>`;
+                }
+                html += `<br><button onclick="backToAdmin()" style="background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%); color: white; font-weight: 600; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin: 8px 0;">⬅️ Back to Admin</button>`;
+                predictionResult.innerHTML = html;
+                if (!locked) {
+                    document.getElementById('adminDisable').addEventListener('change', () => toggleDisable(city));
+                }
+                return;
+            }
+
+            // User view
+            if (locked) {
+                heading.innerHTML = `Your Locked Prediction for ${city}`;
+                predictionForm.classList.add('hidden');
+                predictionResult.classList.remove('hidden');
+                const pred = predictions[city] && predictions[city][currentUser];
+                if (pred) {
+                    const { matched, points } = getPredictionMatchInfo(pred, current);
+                    const s1Emoji = matched[0] ? '✔️' : '❌';
+                    const s2Emoji = matched[1] ? '✔️' : '❌';
+                    predictionResult.innerHTML = `
+                        <div style="background: linear-gradient(135deg, #f0e6ff 0%, #e6d9f9 100%); padding: 20px; border-radius: 12px; margin: 15px 0;">
+                            <p style="font-size: 18px; font-weight: bold; color: #6b4fa0; margin: 5px 0;">🎵 Your Prediction:</p>
+                            <p style="font-size: 16px; margin: 10px 0;"><strong>${capitalize(pred.song1)}</strong> ${s1Emoji} &nbsp; <strong>${capitalize(pred.song2)}</strong> ${s2Emoji}</p>
+                            <p style="font-size: 20px; font-weight: bold; color: #9b6fbf; margin: 15px 0;">⭐ ${points} points</p>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #d4b5f3; margin: 15px 0;">
+                            <p style="font-size: 14px; color: #999; margin: 5px 0;">CORRECT ANSWERS:</p>
+                            <p style="font-size: 16px; font-weight: bold; color: #6b4fa0; margin: 5px 0;">${capitalize(current.song1)}, ${capitalize(current.song2)}</p>
+                        </div>
+                    `;
+                } else {
+                    predictionResult.innerHTML = `
+                        <div style="background: linear-gradient(135deg, #f0e6ff 0%, #e6d9f9 100%); padding: 20px; border-radius: 12px; margin: 15px 0; text-align: center;">
+                            <p style="font-size: 16px; color: #999; margin: 10px 0;">😢 You did not make a prediction for this city.</p>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #d4b5f3; margin: 15px 0;">
+                            <p style="font-size: 14px; color: #999; margin: 5px 0;">CORRECT ANSWERS:</p>
+                            <p style="font-size: 16px; font-weight: bold; color: #6b4fa0; margin: 5px 0;">${capitalize(current.song1)}, ${capitalize(current.song2)}</p>
+                        </div>
+                    `;
+                }
+                document.getElementById('submitPredictionButton').disabled = true;
+                return;
+            }
+            if (disabled) {
+                heading.innerHTML = `Your Locked Prediction for ${city}`;
+                predictionForm.classList.add('hidden');
+                predictionResult.classList.remove('hidden');
+                const pred = predictions[city] && predictions[city][currentUser];
+                if (pred) {
+                    predictionResult.innerHTML = `
+                        <div style="background: linear-gradient(135deg, #f0e6ff 0%, #e6d9f9 100%); padding: 20px; border-radius: 12px; margin: 15px 0; text-align: center;">
+                            <p style="font-size: 16px; color: #6b4fa0; margin: 10px 0;">🎵 ${capitalize(pred.song1)}, ${capitalize(pred.song2)}</p>
+                            <p style="font-size: 15px; color: #7a5299; margin: 10px 0;">🔒 Your answers have been locked in! Stay tuned for the results!</p>
+                        </div>
+                    `;
+                } else {
+                    predictionResult.innerHTML = `
+                        <div style="background: linear-gradient(135deg, #f0e6ff 0%, #e6d9f9 100%); padding: 20px; border-radius: 12px; margin: 15px 0; text-align: center;">
+                            <p style="font-size: 16px; color: #999; margin: 10px 0;">😢 You did not make a prediction for this city.</p>
+                            <p style="font-size: 15px; color: #7a5299; margin: 10px 0;">🔒 Your answers have been locked in! Stay tuned for the results!</p>
+                        </div>
+                    `;
+                }
+                document.getElementById('submitPredictionButton').disabled = true;
+                return;
+            }
+            heading.innerHTML = `Put your surprise songs prediction for ${city}`;
+            predictionForm.classList.remove('hidden');
+            predictionResult.classList.add('hidden');
+            document.getElementById('song1').disabled = false;
+            document.getElementById('song2').disabled = false;
+            document.getElementById('submitPredictionButton').disabled = false;
+            if (predictions[city] && predictions[city][currentUser]) {
+                const pred = predictions[city][currentUser];
+                predictionForm.classList.add('hidden');
+                predictionResult.classList.remove('hidden');
+                predictionResult.innerHTML = `
+                    <p style="font-size: 16px; margin: 10px 0;">✅ Your answers have been submitted: <strong>${capitalize(pred.song1)}, ${capitalize(pred.song2)}</strong></p>
+                    <button onclick="changeAnswer()" style="background: linear-gradient(135deg, #d4b5f3 0%, #c9a3e8 100%); color: #6b4fa0; font-weight: 600; width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 10px; cursor: pointer;">✏️ Change Your Answer</button>
+                    <button onclick="backToMain()" style="background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%); color: white; font-weight: 600; width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 10px; cursor: pointer;">⬅️ Back to Main</button>
+                `;
+            } else {
+                predictionForm.classList.remove('hidden');
+                predictionResult.classList.add('hidden');
+                document.getElementById('song1').value = '';
+                document.getElementById('song2').value = '';
+            }
+        }
+
+async function submitPrediction() {
+            const city = currentCitySelected;
+            const current = getCorrectAnswer(city);
+            const disabled = current.disabled || false;
+            const locked = current.locked || false;
+            if (isAdminUser || disabled || locked) {
+                alert('Predictions are locked for this city.');
+                backToMain();
+                return;
+            }
+            const song1 = document.getElementById('song1').value;
+            const song2 = document.getElementById('song2').value;
+            if (!predictions[city]) predictions[city] = {};
+            predictions[city][currentUser] = {song1, song2};
+            localStorage.setItem('predictions', JSON.stringify(predictions));
+            
+            // Save to Firestore
+            await setDoc(doc(db, 'predictions', city), predictions[city], { merge: true });
+            
+            // Recalculate leaderboard and update stats immediately
+            updateLeaderboard();
+            updateUserStats();
+            
+            // Also save user rankings to Firestore
+            const userPoints = calculateUserPoints(currentUser);
+            await setDoc(doc(db, 'users', currentUser), { 
+                username: currentUser, 
+                points: userPoints 
+            }, { merge: true });
+            
+            // Update answers page if it's currently visible
+            if (!document.getElementById('answersPage').classList.contains('hidden')) {
+                populateAnswers();
+            }
+            // Show submitted message
+            document.getElementById('predictionForm').classList.add('hidden');
+            document.getElementById('predictionResult').classList.remove('hidden');
+            document.getElementById('predictionResult').innerHTML = `
+                <p style="font-size: 16px; margin: 10px 0;">✅ Your answers have been submitted: <strong>${capitalize(song1)}, ${capitalize(song2)}</strong></p>
+                <button onclick="changeAnswer()" style="background: linear-gradient(135deg, #d4b5f3 0%, #c9a3e8 100%); color: #6b4fa0; font-weight: 600; width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 10px; cursor: pointer;">✏️ Change Your Answer</button>
+                <button onclick="backToMain()" style="background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%); color: white; font-weight: 600; width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 10px; cursor: pointer;">⬅️ Back to Main</button>
+            `;
+        }
+
+        function changeAnswer() {
+            const city = currentCitySelected;
+            document.getElementById('predictionForm').classList.remove('hidden');
+            document.getElementById('predictionResult').classList.add('hidden');
+            if (predictions[city] && predictions[city][currentUser]) {
+                const pred = predictions[city][currentUser];
+                document.getElementById('song1').value = pred.song1 || '';
+                document.getElementById('song2').value = pred.song2 || '';
+            }
+        }
+
+        function backToMain() {
+            if (isAdminUser) {
+                showAdmin();
+            } else {
+                showMain();
+            }
+        }
+
+        function showSetCorrect() {
+            if (!isAdminUser) {
+                alert('Only the admin can set correct answers');
+                return;
+            }
+            document.getElementById('main').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('setCorrect').classList.remove('hidden');
+            document.getElementById('answersPage').classList.add('hidden');
+            const forms = document.getElementById('correctForms');
+            forms.innerHTML = '';
+            ['Tampa', 'El Paso', 'Mexico City'].forEach(city => {
+                const safeCity = city.replace(/\s/g, '');
+                const current = correct[city] || {};
+                const isLocked = current.locked || false;
+                const isDisabled = current.disabled || false;
+                forms.innerHTML += `<h3>${city}</h3>
+                <label>Disable this city: <input type="checkbox" id="disable${safeCity}" ${isDisabled ? 'checked' : ''} onchange="toggleDisable('${city}')"></label><br>
+                ${isLocked ? `<p><strong>Locked correct answer:</strong> ${capitalize(current.song1)}, ${capitalize(current.song2)}</p>` : `
+                <label>Song 1:</label>
+                <input id="corr${safeCity}1" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;">
+                <label>Song 2:</label>
+                <input id="corr${safeCity}2" list="songList" placeholder="Search for song..." style="width: 100%; padding: 10px; border: 2px solid #d4b5f3; border-radius: 8px; margin-bottom: 15px; background-color: white;"><br>
+                <button onclick="setCorrectForCity('${city}')">Set Correct Answers</button>
+                `}
+                <br>`;
+                if (current.song1) {
+                    document.getElementById(`corr${safeCity}1`).value = current.song1;
+                    document.getElementById(`corr${safeCity}2`).value = current.song2;
+                }
+            });
+        }
+
+        function backToAdmin() {
+            showAdmin();
+        }
+
+async function setCorrect(city) {
+            const song1 = document.getElementById('adminSong1').value;
+            const song2 = document.getElementById('adminSong2').value;
+            const current = correct[city] || {};
+            const isLocked = current.locked || false;
+            if (isLocked) {
+                alert('Answers are already locked');
+                return;
+            }
+            const proceed = confirm('Are you sure? You can only do this once. Click OK to lock in this answer.');
+            if (!proceed) {
+                return;
+            }
+            correct[city] = { song1, song2, locked: true, disabled: current.disabled || false };
+            localStorage.setItem('correct', JSON.stringify(correct));
+            
+            // Save to Firestore
+            await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
+            
+            updateLeaderboard();
+            alert('Correct answers set for ' + city);
+            showPrediction(city); // refresh
+        }
+
+async function changeCorrect(city) {
+            const current = correct[city] || {};
+            if (!current.locked) {
+                alert('No answers to change');
+                return;
+            }
+            const song1 = prompt('New Song 1:', current.song1);
+            const song2 = prompt('New Song 2:', current.song2);
+            if (!song1 || !song2) return;
+            const proceed = confirm('Are you sure you want to change the correct answers?');
+            if (!proceed) {
+                return;
+            }
+            correct[city] = { song1, song2, locked: true, disabled: current.disabled || false };
+            localStorage.setItem('correct', JSON.stringify(correct));
+            
+            // Save to Firestore
+            await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
+            
+            updateLeaderboard();
+            alert('Correct answers changed for ' + city);
+            showPrediction(city); // refresh
+        }
+
+async function removeCorrect(city) {
+            const current = correct[city] || {};
+            if (!current.locked) {
+                alert('No answers to remove');
+                return;
+            }
+            const proceed = confirm('Are you sure you want to remove the correct answers? Points will be invalidated and users can change predictions.');
+            if (!proceed) {
+                return;
+            }
+            delete correct[city].song1;
+            delete correct[city].song2;
+            correct[city].locked = false;
+            correct[city].disabled = false; // also undisable
+            localStorage.setItem('correct', JSON.stringify(correct));
+            
+            // Save to Firestore
+            await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
+            
+            updateLeaderboard();
+            alert('Correct answers removed for ' + city);
+            showPrediction(city); // refresh
+        }
+
+async function toggleDisable(city) {
+            const checkbox = document.getElementById('adminDisable');
+            const current = correct[city] || {};
+            const wasDisabled = current.disabled || false;
+            const newDisabled = checkbox.checked;
+            if (newDisabled && !wasDisabled) {
+                // Disabling
+                const proceed = confirm('Are you sure you want to disable this city? Users will not be able to change their predictions.');
+                if (!proceed) {
+                    checkbox.checked = false;
+                    return;
+                }
+            } else if (!newDisabled && wasDisabled) {
+                // Undisabling
+                const proceed = confirm('Are you sure you want to undisable this city? Users will be able to change their predictions again.');
+                if (!proceed) {
+                    checkbox.checked = true;
+                    return;
+                }
+            }
+            if (!correct[city]) correct[city] = {};
+            correct[city].disabled = newDisabled;
+            localStorage.setItem('correct', JSON.stringify(correct));
+            
+            // Save to Firestore
+            await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
+            
+            alert(`${city} ${newDisabled ? 'disabled' : 'enabled'}`);
+        }
+
+async function setCorrectForCity(city) {
+            const safeCity = city.replace(/\s/g, '');
+            const song1 = document.getElementById(`corr${safeCity}1`).value;
+            const song2 = document.getElementById(`corr${safeCity}2`).value;
+            const current = correct[city] || {};
+            const isLocked = current.locked || false;
+            const changed = isLocked && (current.song1 !== song1 || current.song2 !== song2);
+            if (!isLocked) {
+                const proceed = confirm('Are you sure? You can only do this once. Click OK to lock in this answer, or Cancel to stay on this page.');
+                if (!proceed) {
+                    return;
+                }
+                correct[city] = { song1, song2, locked: true, disabled: current.disabled || false };
+            } else if (changed) {
+                const proceed = confirm('Are you sure you want to change? Click OK to apply the new answer, or Cancel to stay on this page.');
+                if (!proceed) {
+                    return;
+                }
+                correct[city] = { song1, song2, locked: true, disabled: current.disabled || false };
+            } else {
+                correct[city] = { song1, song2, locked: true, disabled: current.disabled || false };
+            }
+            localStorage.setItem('correct', JSON.stringify(correct));
+            
+            // Save to Firestore
+            await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
+            
+            updateLeaderboard();
+            updateUserStats();
+            
+            // Update answers page if it's currently visible
+            if (!document.getElementById('answersPage').classList.contains('hidden')) {
+                populateAnswers();
+            }
+            alert('Correct answers saved for ' + city);
+            showSetCorrect(); // refresh the page
+        }
+
+        function updateUserStats() {
+            document.getElementById('userStats').innerHTML = generateUserStats(currentUser);
+        }
+
+        function generateUserStats(user) {
+            const totalPoints = calculateUserPoints(user);
+            const ranking = getRanking(user);
+            const answers = [];
+            // Iterate through all cities and days
+            for (const city of Object.keys(cityDays)) {
+                for (let day = 1; day <= cityDays[city]; day++) {
+                    const cityDay = `${city} D${day}`;
+                    const pred = predictions[cityDay] && predictions[cityDay][user];
+                    const corr = getCorrectAnswer(cityDay);
+                    if (!pred) {
+                        if (corr.locked) {
+                            answers.push(`${cityDay} - No predictions (0 points)`);
+                        } else {
+                            answers.push(`${cityDay} - No prediction (pending)`);
+                        }
+                        continue;
+                    }
+                    if (!corr.locked) {
+                        answers.push(`${cityDay} - ${capitalize(pred.song1)}, ${capitalize(pred.song2)} (pending)`);
+                        continue;
+                    }
+                    const { matched, points } = getPredictionMatchInfo(pred, corr);
+                    const s1Emoji = matched[0] ? '✔️' : '❌';
+                    const s2Emoji = matched[1] ? '✔️' : '❌';
+                    const pts = points;
+                    answers.push(`${cityDay} - ${capitalize(pred.song1)} ${s1Emoji}, ${capitalize(pred.song2)} ${s2Emoji} (${pts} points)`);
+                }
+            }
+            return `
+<p><strong>Username:</strong> ${user}</p>
+<p><strong>Total Points:</strong> ${totalPoints}</p>
+<p><strong>Ranking:</strong> ${ranking}</p>
+<p><a href="#" onclick="showAnswers()">Click here to see your full answers.</a></p>
+`;
+        }
+
+function getRanking(user) {
+            // Calculate ranking from ALL users (not just the displayed top 25)
+            // First, get all user points
+            const allPoints = {};
+            const adminLower = adminUsername.toLowerCase();
+            
+            const usernamesFromFirestore = users
+                .map(u => u && u.username)
+                .filter(Boolean);
+            const usernamesFromPredictions = new Set();
+            Object.keys(predictions || {}).forEach(cityDay => {
+                const byUser = predictions[cityDay];
+                if (!byUser) return;
+                Object.keys(byUser).forEach(u => usernamesFromPredictions.add(u));
+            });
+            const usernames = (usernamesFromFirestore.length ? usernamesFromFirestore : Array.from(usernamesFromPredictions));
+            
+            usernames.forEach(u => {
+                if (!u) return;
+                if (u.toLowerCase() === adminLower) return;
+                allPoints[u] = calculateUserPoints(u);
+            });
+            
+            // Add current user if not exists
+            if (user && user.toLowerCase() !== adminLower) {
+                if (allPoints[user] === undefined) allPoints[user] = calculateUserPoints(user);
+            }
+            
+            // Sort all users by points
+            const sortedAll = Object.entries(allPoints).sort((a, b) => b[1] - a[1]);
+            const index = sortedAll.findIndex(([u, p]) => u === user);
+            if (index === -1) return 'Not ranked';
+            const rank = index + 1;
+            const suffix = rank === 1 ? 'st' : rank === 2 ? 'nd' : rank === 3 ? 'rd' : 'th';
+            return `${rank}${suffix} place`;
+        }
+
+        function capitalize(value) {
+            return value.charAt(0).toUpperCase() + value.slice(1);
+        }
+
+        window.login = login;
+        window.register = register;
+        window.showRegister = showRegister;
+        window.showLogin = showLogin;
+        window.showMain = showMain;
+        window.showAnswers = showAnswers;
+        window.showDaySelection = showDaySelection;
+        window.backToMain = backToMain;
+        window.submitPrediction = submitPrediction;
+        window.changeAnswer = changeAnswer;
+        window.changeCorrect = changeCorrect;
+        window.removeCorrect = removeCorrect;
+        window.toggleDisable = toggleDisable;
+        window.setCorrect = setCorrect;
+        window.setCorrectForCity = setCorrectForCity;
+        window.backToAdmin = backToAdmin;
+        window.logout = logout;
+        window.showAdmin = showAdmin;
+    </script>
+</body>
+</html>
