@@ -316,6 +316,39 @@
             box-shadow: 0 6px 20px rgba(230, 58, 109, 0.4);
         }
         
+        /* Login Button */
+        #loginButton {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(82, 196, 26, 0.3);
+            z-index: 1000;
+        }
+        
+        #loginButton:hover {
+            background: linear-gradient(135deg, #46a017 0%, #2f7d0a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(82, 196, 26, 0.4);
+        }
+        
+        /* Unauthorized Page */
+        #unauthorized {
+            max-width: 600px;
+            margin: 60px auto 40px;
+            padding: 40px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(107, 79, 160, 0.3);
+            text-align: center;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             #cityButtons, #adminCityButtons, #dayButtons {
@@ -338,6 +371,7 @@
     </style>
 </head>
 <body>
+    <button id="loginButton" class="hidden" onclick="showLogin()">🔓 Login</button>
     <button id="logoutButton" class="hidden" onclick="logout()">🚪 Logout</button>
     
     <div id="auth">
@@ -347,6 +381,7 @@
         <input type="password" id="loginPassword" placeholder="🔒 Password">
         <button onclick="login()">🔓 Login</button>
         <button onclick="showRegister()">✏️ Register</button>
+        <button onclick="showMain()" style="background: linear-gradient(135deg, #b896d9 0%, #9b6fbf 100%); color: white;">🏠 Go to Home</button>
     </div>
     <div id="register" class="hidden">
         <h1>💜 fantasy bangtan 🎵</h1>
@@ -360,14 +395,14 @@
         <h1>💜 fantasy bangtan 🎵</h1>
         <div id="preface">
             <h3>✨ Preface</h3>
-            <p>Hi ARMYS! This is a prediction game for ARMYs, for us to predict the surprise songs BTS will be singing at each stop of their Arirang Tour! Here's how it works:</p>
+            <p>Hi ARMYS! This is a prediction game made by ARMYs for ARMYs, where we predict the surprise songs BTS will be singing at each stop of their Arirang Tour! Here are the rules:</p>
             <ul>
                 <li>🕐 Put in your predictions for the surprise songs at least 2 hours before the concert officially starts.</li>
                 <li>📊 Each correct answer awards you 15 points, and there are 5 points awarded for participation if you submitted your answers but did not get any right.</li>
                 <li>🎉 This is purely for entertainment and fun, and there are no prizes available other than bragging rights.</li>
                 <li>😊 Have fun!</li>
             </ul>
-            <p><strong>P.S.</strong> This website is made by a beginner so apologies in advance for any issues </p>
+            <p><strong>P.S.</strong> This website is made by a beginner at coding so apologies in advance for any issues </p>
         </div>
         <h2>🏆 Leaderboard</h2>
         <table id="leaderboard"></table>
@@ -409,7 +444,16 @@
             <button onclick="showDaySelection('Manila')">Manila</button>
         </div>
         <h2>📊 My Statistics</h2>
-        <div id="userStats"></div>
+        <div id="userStats" class="hidden"></div>
+    </div>
+    
+    <!-- New Unauthorized Page -->
+    <div id="unauthorized" class="hidden">
+        <h1>💜 fantasy bangtan 🎵</h1>
+        <h2>🔒 Unable to put in predictions. Log in first.</h2>
+        <p style="color: #666; margin: 20px 0;">Please log in to make predictions and view your statistics.</p>
+        <button onclick="showMain()" style="background: linear-gradient(135deg, #d4b5f3 0%, #c9a3e8 100%); color: #6b4fa0; font-size: 16px; padding: 15px 30px;">⬅️ Back to original page</button>
+        <button onclick="showLogin()" style="background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%); color: white; font-size: 16px; padding: 15px 30px;">🔓 Go to login page</button>
     </div>
     <div id="adminPanel" class="hidden">
         <h1>💜 fantasy bangtan 🎵</h1>
@@ -506,7 +550,7 @@
         <option value="Boy With Luv">
         <option value="Boyz With Fun">
         <option value="Butterfly">
-        <option value="Could you turn off your cellphone?">
+        <option value="Can you turn off your cellphone?">
         <option value="Coffee">
         <option value="Converse High">
         <option value="Crystal Snow">
@@ -586,9 +630,9 @@
         <option value="Tomorrow">
         <option value="UGH!">
         <option value="Wake Up">
-        <option value="We Are Bulletproof Pt.1">
+        <option value="WAB: Pt 1">
         <option value="War of Hormone">
-        <option value="We Are Bulletproof: The Eternal">
+        <option value="We are Bulletproof:The Eternal">
         <option value="We Are Bulletproof Pt.2">
         <option value="We On">
         <option value="Whalien 52">
@@ -693,7 +737,10 @@ async function loadUsersFromFirebase() {
             }
         }
 
-        window.addEventListener('DOMContentLoaded', loadUsersFromFirebase);
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadUsersFromFirebase();
+            showMain();
+        });
 
         function normalizeCityKey(city) {
             const match = city.match(/^(.+?) D\d+$/);
@@ -725,6 +772,7 @@ async function loadUsersFromFirebase() {
         function showLogin() {
             currentUser = null;
             currentCitySelected = null;
+            toggleLoginButton(false);
             document.getElementById('auth').classList.remove('hidden');
             document.getElementById('register').classList.add('hidden');
             document.getElementById('main').classList.add('hidden');
@@ -733,13 +781,14 @@ async function loadUsersFromFirebase() {
             document.getElementById('setCorrect').classList.add('hidden');
             document.getElementById('daySelection').classList.add('hidden');
             document.getElementById('answersPage').classList.add('hidden');
-            document.getElementById('logoutButton').classList.add('hidden');
+            document.getElementById('unauthorized').classList.add('hidden');
             isAdminUser = false;
         }
 
         function logout() {
             currentUser = null;
-            document.getElementById('logoutButton').classList.add('hidden');
+            isAdminUser = false;
+            toggleLoginButton(false);
             showLogin();
         }
 
@@ -764,6 +813,7 @@ currentUser = username;
                 } else {
                     showMain();
                 }
+                toggleLoginButton(true);
             } catch (error) {
                 console.error('Login failed:', error);
                 alert('Invalid credentials');
@@ -808,6 +858,11 @@ currentUser = username;
             showLogin();
         }
 
+        function toggleLoginButton(loggedIn) {
+            document.getElementById('loginButton').classList.toggle('hidden', loggedIn);
+            document.getElementById('logoutButton').classList.toggle('hidden', !loggedIn);
+        }
+
         function showMain() {
             document.getElementById('auth').classList.add('hidden');
             document.getElementById('register').classList.add('hidden');
@@ -817,11 +872,17 @@ currentUser = username;
             document.getElementById('setCorrect').classList.add('hidden');
             document.getElementById('daySelection').classList.add('hidden');
             document.getElementById('answersPage').classList.add('hidden');
-            document.getElementById('logoutButton').classList.remove('hidden');
+            document.getElementById('unauthorized').classList.add('hidden');
+            toggleLoginButton(!!currentUser);
             document.getElementById('cityButtons').classList.remove('hidden');
+            if (currentUser) {
+                document.getElementById('userStats').classList.remove('hidden');
+                updateUserStats();
+            } else {
+                document.getElementById('userStats').classList.add('hidden');
+            }
             resetPredictionPanel();
             updateLeaderboard();
-            updateUserStats();
         }
 
         function populateAnswers() {
@@ -956,6 +1017,20 @@ const sorted = Object.entries(points).sort((a, b) => b[1] - a[1]).slice(0, 25);
         }
 
         function showPrediction(city) {
+            // Auth guard for guests
+            if (!currentUser && !isAdminUser) {
+                document.getElementById('main').classList.add('hidden');
+                document.getElementById('prediction').classList.add('hidden');
+                document.getElementById('daySelection').classList.add('hidden');
+                document.getElementById('auth').classList.add('hidden');
+                document.getElementById('register').classList.add('hidden');
+                document.getElementById('adminPanel').classList.add('hidden');
+                document.getElementById('setCorrect').classList.add('hidden');
+                document.getElementById('answersPage').classList.add('hidden');
+                document.getElementById('unauthorized').classList.remove('hidden');
+                return;
+            }
+            
             resetPredictionPanel();
             const current = getCorrectAnswer(city);
             const disabled = current.disabled || false;
@@ -966,6 +1041,7 @@ const sorted = Object.entries(points).sort((a, b) => b[1] - a[1]).slice(0, 25);
             document.getElementById('adminPanel').classList.add('hidden');
             document.getElementById('prediction').classList.remove('hidden');
             document.getElementById('answersPage').classList.add('hidden');
+            document.getElementById('unauthorized').classList.add('hidden');
             const predictionForm = document.getElementById('predictionForm');
             const predictionResult = document.getElementById('predictionResult');
 
@@ -1355,6 +1431,7 @@ async function setCorrectForCity(city) {
         }
 
         function updateUserStats() {
+            if (!currentUser) return;
             document.getElementById('userStats').innerHTML = generateUserStats(currentUser);
         }
 
