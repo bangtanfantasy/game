@@ -44,7 +44,6 @@
             font-size: 1.3em;
         }
         
-        /* Auth Sections */
         #auth, #register {
             max-width: 450px;
             margin: 40px auto;
@@ -55,7 +54,6 @@
             backdrop-filter: blur(10px);
         }
         
-        /* Input Styling */
         input[type="text"], input[type="password"], select {
             width: 100%;
             padding: 12px 15px;
@@ -75,7 +73,6 @@
             background-color: #ffffff;
         }
         
-        /* Button Styling */
         button {
             padding: 12px 24px;
             margin: 8px;
@@ -108,7 +105,6 @@
             background: linear-gradient(135deg, #a080c4 0%, #8b5aaa 100%);
         }
         
-        /* City Buttons */
         #cityButtons, #adminCityButtons, #dayButtons {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -143,7 +139,6 @@
             background: linear-gradient(135deg, #8b5aaa 0%, #6a4289 100%);
         }
         
-        /* Leaderboard */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -180,7 +175,6 @@
             border-bottom: none;
         }
         
-        /* Main Content */
         #main {
             max-width: 1200px;
             margin: 0 auto;
@@ -208,8 +202,7 @@
             margin: 8px 0;
             color: #555;
         }
-        
-        /* Prediction Section */
+
         #prediction, #daySelection, #setCorrect {
             max-width: 600px;
             margin: 30px auto;
@@ -252,7 +245,6 @@
             color: #333;
         }
         
-        /* Admin Panel */
         #adminPanel {
             max-width: 1200px;
             margin: 0 auto;
@@ -263,7 +255,6 @@
             font-weight: bold;
         }
         
-        /* User Stats */
         #userStats {
             background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 100%);
             border: 2px solid #d4b5f3;
@@ -294,7 +285,6 @@
             line-height: 1.6;
         }
         
-        /* Logout Button */
         #logoutButton {
             position: fixed;
             top: 20px;
@@ -316,7 +306,6 @@
             box-shadow: 0 6px 20px rgba(230, 58, 109, 0.4);
         }
         
-        /* Login Button */
         #loginButton {
             position: fixed;
             top: 20px;
@@ -338,7 +327,6 @@
             box-shadow: 0 6px 20px rgba(82, 196, 26, 0.4);
         }
         
-        /* Unauthorized Page */
         #unauthorized {
             max-width: 600px;
             margin: 60px auto 40px;
@@ -349,7 +337,6 @@
             text-align: center;
         }
         
-        /* Responsive */
         @media (max-width: 768px) {
             #cityButtons, #adminCityButtons, #dayButtons {
                 grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -669,20 +656,17 @@ import { db, auth } from './firebase.js';
         let leaderboardSorted = [];
 
         async function fakeEmailForUsername(username) {
-            // Deterministic fake email per username.
-            // Firebase Authentication will handle password encryption.
             const normalized = String(username).trim().toLowerCase();
             const encoder = new TextEncoder();
             const data = encoder.encode(normalized);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            const prefix = hashHex.slice(0, 24); // enough to avoid collisions
+            const prefix = hashHex.slice(0, 24);
             return `${prefix}@bts-guesser.app`;
         }
 
         async function getUserFromFirebase(username) {
-            // Profile lookup (NO passwords stored here).
             try {
                 const userId = encodeURIComponent(username);
                 const userDoc = await getDoc(doc(db, 'users', userId));
@@ -694,11 +678,9 @@ import { db, auth } from './firebase.js';
         }
 
         async function saveUserToFirebase(username, email) {
-            // Create only a profile doc; password lives in Firebase Auth.
             const userRecord = { username, email };
             const userId = encodeURIComponent(username);
             await setDoc(doc(db, 'users', userId), userRecord, { merge: true });
-            // Keep the local cache behavior so the leaderboard works as before
             users.push(userRecord);
             localStorage.setItem('users', JSON.stringify(users));
         }
@@ -713,7 +695,6 @@ async function loadUsersFromFirebase() {
                 console.warn('Firebase load failed, falling back to local users:', error);
                 users = JSON.parse(localStorage.getItem('users')) || [];
             }
-            // Load predictions from Firestore
             try {
                 const predSnapshot = await getDocs(collection(db, 'predictions'));
                 predictions = {};
@@ -725,7 +706,6 @@ async function loadUsersFromFirebase() {
                 console.warn('Firebase predictions load failed:', error);
                 predictions = JSON.parse(localStorage.getItem('predictions')) || {};
             }
-            // Load correct answers from Firestore
             try {
                 const corrSnapshot = await getDocs(collection(db, 'correct'));
                 correct = {};
@@ -826,30 +806,24 @@ currentUser = username;
             const username = document.getElementById('regUsername').value;
             const password = document.getElementById('regPassword').value;
 
-            // Allow adminmeatman to register into Firebase Auth as well.
-
+            
             const email = await fakeEmailForUsername(username);
 
             try {
-                // Create user in Firebase Authentication (password is encrypted by Firebase Auth)
                 await createUserWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 console.error('Register failed:', error);
                 const code = error && error.code ? error.code : '';
                 const message = error && error.message ? error.message : 'Registration failed';
 
-                // Only show "Username taken" for the real "already exists" case
                 if (code === 'auth/email-already-in-use') {
                     alert('Username taken');
                 } else {
-                    // Show actual auth error so we can debug
                     alert(`Registration failed (${code}): ${message}`);
                 }
                 return;
             }
 
-            // Save non-sensitive profile in Firestore for leaderboard/etc.
-            // IMPORTANT: Firestore failures should NOT be reported as "Username taken".
             try {
                 await saveUserToFirebase(username, email);
             } catch (error) {
@@ -988,7 +962,6 @@ currentUser = username;
                 .map(u => u && u.username)
                 .filter(Boolean);
 
-            // Fallback: derive usernames from predictions if Firestore didn't load
             const usernamesFromPredictions = new Set();
             Object.keys(predictions || {}).forEach(cityDay => {
                 const byUser = predictions[cityDay];
@@ -1019,7 +992,6 @@ const sorted = Object.entries(points).sort((a, b) => b[1] - a[1]).slice(0, 25);
         }
 
         function showPrediction(city) {
-            // Auth guard for guests
             if (!currentUser && !isAdminUser) {
                 document.getElementById('main').classList.add('hidden');
                 document.getElementById('prediction').classList.add('hidden');
@@ -1048,7 +1020,6 @@ const sorted = Object.entries(points).sort((a, b) => b[1] - a[1]).slice(0, 25);
             const predictionResult = document.getElementById('predictionResult');
 
             if (isAdminUser) {
-                // Admin view
                 heading.innerHTML = `Manage ${city}`;
                 predictionForm.classList.add('hidden');
                 predictionResult.classList.remove('hidden');
@@ -1076,7 +1047,6 @@ const sorted = Object.entries(points).sort((a, b) => b[1] - a[1]).slice(0, 25);
                 return;
             }
 
-            // User view
             if (locked) {
                 heading.innerHTML = `Your Locked Prediction for ${city}`;
                 predictionForm.classList.add('hidden');
@@ -1170,7 +1140,6 @@ async function submitPrediction() {
 const song1 = document.getElementById('song1').value;
             const song2 = document.getElementById('song2').value;
             
-            // List of allowed songs (must match exactly with the datalist options)
             const allowedSongs = [
                 "134340", "2! 3!", "21st Century Girl", "24/7 = Heaven", "2nd Grade",
                 "A Supplementary Story: You Never Walk Alone", "Airplane Pt. 2", "Am I Wrong", "Anpanman",
@@ -1195,7 +1164,6 @@ const song1 = document.getElementById('song1').value;
                 "Wishing on a star", "Yet To Come", "Young Forever", "Your Eyes Tell", "Zero O' Clock"
             ];
             
-            // Validate: Must select from allowed options (not custom manual input)
             if (!song1 || !song2) {
                 alert('Try again, select from given options');
                 return;
@@ -1208,25 +1176,21 @@ const song1 = document.getElementById('song1').value;
             predictions[city][currentUser] = {song1, song2};
             localStorage.setItem('predictions', JSON.stringify(predictions));
             
-            // Save to Firestore
             await setDoc(doc(db, 'predictions', city), predictions[city], { merge: true });
             
-            // Recalculate leaderboard and update stats immediately
             updateLeaderboard();
             updateUserStats();
             
-            // Also save user rankings to Firestore
             const userPoints = calculateUserPoints(currentUser);
             await setDoc(doc(db, 'users', currentUser), { 
                 username: currentUser, 
                 points: userPoints 
             }, { merge: true });
             
-            // Update answers page if it's currently visible
             if (!document.getElementById('answersPage').classList.contains('hidden')) {
                 populateAnswers();
             }
-            // Show submitted message
+    
             document.getElementById('predictionForm').classList.add('hidden');
             document.getElementById('predictionResult').classList.remove('hidden');
             document.getElementById('predictionResult').innerHTML = `
@@ -1308,12 +1272,11 @@ async function setCorrect(city) {
             correct[city] = { song1, song2, locked: true, disabled: current.disabled || false };
             localStorage.setItem('correct', JSON.stringify(correct));
             
-            // Save to Firestore
             await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
             
             updateLeaderboard();
             alert('Correct answers set for ' + city);
-            showPrediction(city); // refresh
+            showPrediction(city); 
         }
 
 async function changeCorrect(city) {
@@ -1332,12 +1295,11 @@ async function changeCorrect(city) {
             correct[city] = { song1, song2, locked: true, disabled: current.disabled || false };
             localStorage.setItem('correct', JSON.stringify(correct));
             
-            // Save to Firestore
             await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
             
             updateLeaderboard();
             alert('Correct answers changed for ' + city);
-            showPrediction(city); // refresh
+            showPrediction(city); 
         }
 
 async function removeCorrect(city) {
@@ -1370,14 +1332,12 @@ async function toggleDisable(city) {
             const wasDisabled = current.disabled || false;
             const newDisabled = checkbox.checked;
             if (newDisabled && !wasDisabled) {
-                // Disabling
                 const proceed = confirm('Are you sure you want to disable this city? Users will not be able to change their predictions.');
                 if (!proceed) {
                     checkbox.checked = false;
                     return;
                 }
             } else if (!newDisabled && wasDisabled) {
-                // Undisabling
                 const proceed = confirm('Are you sure you want to undisable this city? Users will be able to change their predictions again.');
                 if (!proceed) {
                     checkbox.checked = true;
@@ -1388,7 +1348,6 @@ async function toggleDisable(city) {
             correct[city].disabled = newDisabled;
             localStorage.setItem('correct', JSON.stringify(correct));
             
-            // Save to Firestore
             await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
             
             alert(`${city} ${newDisabled ? 'disabled' : 'enabled'}`);
@@ -1418,18 +1377,16 @@ async function setCorrectForCity(city) {
             }
             localStorage.setItem('correct', JSON.stringify(correct));
             
-            // Save to Firestore
             await setDoc(doc(db, 'correct', city), correct[city], { merge: true });
             
             updateLeaderboard();
             updateUserStats();
             
-            // Update answers page if it's currently visible
             if (!document.getElementById('answersPage').classList.contains('hidden')) {
                 populateAnswers();
             }
             alert('Correct answers saved for ' + city);
-            showSetCorrect(); // refresh the page
+            showSetCorrect();
         }
 
         function updateUserStats() {
@@ -1441,7 +1398,6 @@ async function setCorrectForCity(city) {
             const totalPoints = calculateUserPoints(user);
             const ranking = getRanking(user);
             const answers = [];
-            // Iterate through all cities and days
             for (const city of Object.keys(cityDays)) {
                 for (let day = 1; day <= cityDays[city]; day++) {
                     const cityDay = `${city} D${day}`;
@@ -1475,8 +1431,6 @@ async function setCorrectForCity(city) {
         }
 
 function getRanking(user) {
-            // Calculate ranking from ALL users (not just the displayed top 25)
-            // First, get all user points
             const allPoints = {};
             const adminLower = adminUsername.toLowerCase();
             
@@ -1497,12 +1451,10 @@ function getRanking(user) {
                 allPoints[u] = calculateUserPoints(u);
             });
             
-            // Add current user if not exists
             if (user && user.toLowerCase() !== adminLower) {
                 if (allPoints[user] === undefined) allPoints[user] = calculateUserPoints(user);
             }
             
-            // Sort all users by points
             const sortedAll = Object.entries(allPoints).sort((a, b) => b[1] - a[1]);
             const index = sortedAll.findIndex(([u, p]) => u === user);
             if (index === -1) return 'Not ranked';
